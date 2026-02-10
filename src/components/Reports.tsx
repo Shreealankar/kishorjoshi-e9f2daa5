@@ -125,85 +125,95 @@ const Reports = () => {
   <title>कुटुंब खर्च अहवाल - ${filterYear}</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI',system-ui,sans-serif; background:#fff; color:#1a1a1a; padding:10px; font-size:11px; }
-    .header { text-align:center; padding:12px 0; border-bottom:2px solid #7c3aed; margin-bottom:12px; }
-    .header h1 { color:#7c3aed; font-size:16px; margin-bottom:2px; }
-    .header p { color:#666; font-size:10px; }
-    .summary { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
-    .summary-card { flex:1; min-width:90px; padding:8px; border-radius:6px; border:1.5px solid #ddd; background:#fafafa; text-align:center; }
-    .summary-card .label { font-size:9px; color:#666; margin-bottom:2px; }
-    .summary-card .value { font-size:14px; font-weight:700; }
-    .green { color:#16a34a; border-color:#86efac; }
-    .orange { color:#ea580c; border-color:#fdba74; }
-    .purple { color:#7c3aed; border-color:#c4b5fd; }
-    .section { margin-bottom:16px; page-break-inside:avoid; }
-    .section h2 { font-size:12px; color:#7c3aed; margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid #e5e7eb; }
-    table { width:100%; border-collapse:collapse; font-size:10px; word-break:break-word; }
-    th { padding:4px 3px; text-align:left; background:#f3f4f6; color:#374151; font-weight:600; border-bottom:1.5px solid #d1d5db; font-size:9px; }
-    td { padding:3px; border-bottom:1px solid #e5e7eb; }
-    .footer { text-align:center; padding:10px 0; border-top:1px solid #e5e7eb; margin-top:12px; color:#9ca3af; font-size:9px; }
-    .type-badge { padding:1px 5px; border-radius:3px; font-size:8px; font-weight:600; display:inline-block; }
+    body { font-family:'Segoe UI','Noto Sans Devanagari',system-ui,sans-serif; background:#fff; color:#1f2937; padding:24px 16px; font-size:14px; line-height:1.5; max-width:800px; margin:0 auto; }
+    .header { text-align:center; padding:24px 0 16px; border-bottom:3px solid #7c3aed; margin-bottom:24px; }
+    .header h1 { color:#7c3aed; font-size:26px; font-weight:800; margin-bottom:4px; letter-spacing:0.5px; }
+    .header .subtitle { color:#6b7280; font-size:14px; margin-bottom:2px; }
+    .header .date { color:#9ca3af; font-size:12px; }
+    .summary { display:flex; gap:12px; margin-bottom:28px; }
+    .summary-card { flex:1; padding:16px 12px; border-radius:10px; border:2px solid #e5e7eb; background:#f9fafb; text-align:center; }
+    .summary-card .label { font-size:12px; color:#6b7280; margin-bottom:6px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; }
+    .summary-card .value { font-size:22px; font-weight:800; }
+    .green { color:#16a34a; border-color:#bbf7d0 !important; background:#f0fdf4 !important; }
+    .orange { color:#ea580c; border-color:#fed7aa !important; background:#fff7ed !important; }
+    .purple { color:#7c3aed; border-color:#ddd6fe !important; background:#f5f3ff !important; }
+    .section { margin-bottom:28px; page-break-inside:avoid; }
+    .section h2 { font-size:16px; color:#7c3aed; font-weight:700; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid #e5e7eb; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { padding:10px 8px; text-align:left; background:#f3f4f6; color:#374151; font-weight:700; border-bottom:2px solid #d1d5db; font-size:12px; text-transform:uppercase; letter-spacing:0.3px; }
+    td { padding:8px; border-bottom:1px solid #e5e7eb; vertical-align:middle; }
+    tr:nth-child(even) { background:#f9fafb; }
+    .footer { text-align:center; padding:20px 0; border-top:2px solid #e5e7eb; margin-top:24px; color:#9ca3af; font-size:11px; }
+    .type-badge { padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; display:inline-block; }
     .type-credit { background:#dcfce7; color:#16a34a; }
     .type-debit { background:#ffedd5; color:#ea580c; }
+    .total-row td { font-weight:700; font-size:14px; padding:10px 8px; }
     @media print { 
-      body { padding:5mm; font-size:10px; } 
+      body { padding:10mm; font-size:12px; } 
       .no-print { display:none !important; }
-      table { font-size:9px; }
       .section { page-break-inside:avoid; }
+    }
+    @media (max-width:500px) {
+      body { padding:12px 8px; font-size:13px; }
+      .header h1 { font-size:20px; }
+      .summary { flex-direction:column; gap:8px; }
+      .summary-card .value { font-size:18px; }
+      table { font-size:11px; }
+      th, td { padding:6px 4px; }
     }
   </style>
 </head>
 <body>
-  <button class="no-print" style="display:block;margin:0 auto 10px;padding:8px 20px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
+  <button class="no-print" style="display:block;width:100%;max-width:300px;margin:0 auto 20px;padding:12px 24px;background:#7c3aed;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(124,58,237,0.3);" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
   
   <div class="header">
-    <h1>कुटुंब खर्च व्यवस्थापन</h1>
-    <p>वार्षिक अहवाल - ${filterYear} | ${user?.name || ''} ${isAdmin ? '(व्यवस्थापक)' : '(सदस्य)'}</p>
-    <p>तारीख: ${new Date().toLocaleDateString('mr-IN')}</p>
+    <h1>📊 कुटुंब खर्च व्यवस्थापन</h1>
+    <p class="subtitle">वार्षिक अहवाल - ${filterYear} | ${user?.name || ''} ${isAdmin ? '(व्यवस्थापक)' : '(सदस्य)'}</p>
+    <p class="date">तारीख: ${new Date().toLocaleDateString('mr-IN')}</p>
   </div>
 
   <div class="summary">
     <div class="summary-card green">
-      <div class="label">एकूण जमा (Credit)</div>
-      <div class="value green">₹${totalCredit.toLocaleString('hi-IN')}</div>
+      <div class="label">एकूण जमा</div>
+      <div class="value" style="color:#16a34a;">₹${totalCredit.toLocaleString('hi-IN')}</div>
     </div>
     <div class="summary-card orange">
-      <div class="label">एकूण खर्च (Debit)</div>
-      <div class="value orange">₹${totalDebit.toLocaleString('hi-IN')}</div>
+      <div class="label">एकूण खर्च</div>
+      <div class="value" style="color:#ea580c;">₹${totalDebit.toLocaleString('hi-IN')}</div>
     </div>
     <div class="summary-card purple">
-      <div class="label">शिल्लक (Balance)</div>
-      <div class="value ${(totalCredit - totalDebit) >= 0 ? 'green' : 'orange'}">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</div>
+      <div class="label">शिल्लक</div>
+      <div class="value" style="color:${(totalCredit - totalDebit) >= 0 ? '#16a34a' : '#ea580c'};">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</div>
     </div>
   </div>
 
   ${creditCategoryData.length > 0 ? `
   <div class="section">
-    <h2>वर्गवारीनुसार जमा (Credit by Category)</h2>
+    <h2>💰 वर्गवारीनुसार जमा (Credit by Category)</h2>
     <table>
       <thead><tr><th>वर्गवारी</th><th style="text-align:right;">रक्कम</th><th style="text-align:right;">टक्केवारी</th></tr></thead>
       <tbody>${creditCatRows}</tbody>
-      <tfoot><tr style="border-top:1.5px solid #d1d5db;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#16a34a;">₹${totalCredit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
+      <tfoot><tr class="total-row" style="border-top:2px solid #d1d5db;"><td>एकूण</td><td style="text-align:right;color:#16a34a;">₹${totalCredit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
     </table>
   </div>` : ''}
 
   ${categoryData.length > 0 ? `
   <div class="section">
-    <h2>वर्गवारीनुसार खर्च (Debit by Category)</h2>
+    <h2>💸 वर्गवारीनुसार खर्च (Debit by Category)</h2>
     <table>
       <thead><tr><th>वर्गवारी</th><th style="text-align:right;">रक्कम</th><th style="text-align:right;">टक्केवारी</th></tr></thead>
       <tbody>${catRows}</tbody>
-      <tfoot><tr style="border-top:1.5px solid #d1d5db;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#ea580c;">₹${totalDebit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
+      <tfoot><tr class="total-row" style="border-top:2px solid #d1d5db;"><td>एकूण</td><td style="text-align:right;color:#ea580c;">₹${totalDebit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
     </table>
   </div>` : ''}
 
   <div class="section">
-    <h2>सर्व व्यवहार (All Transactions - ${transactions.length})</h2>
+    <h2>📋 सर्व व्यवहार (${transactions.length} व्यवहार)</h2>
     <div style="overflow-x:auto;">
     <table>
       <thead>
         <tr>
-          <th style="text-align:center;">#</th>
+          <th style="text-align:center;width:30px;">#</th>
           <th>तारीख</th>
           ${isAdmin ? '<th>सदस्य</th>' : ''}
           <th style="text-align:center;">प्रकार</th>
@@ -214,17 +224,17 @@ const Reports = () => {
       </thead>
       <tbody>${txnRows}</tbody>
       <tfoot>
-        <tr style="border-top:1.5px solid #d1d5db;font-weight:700;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">एकूण जमा:</td>
+        <tr class="total-row" style="border-top:2px solid #d1d5db;">
+          <td colspan="${isAdmin ? 6 : 5}" style="text-align:right;">एकूण जमा:</td>
           <td style="text-align:right;color:#16a34a;">₹${totalCredit.toLocaleString('hi-IN')}</td>
         </tr>
-        <tr style="font-weight:700;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">एकूण खर्च:</td>
+        <tr class="total-row">
+          <td colspan="${isAdmin ? 6 : 5}" style="text-align:right;">एकूण खर्च:</td>
           <td style="text-align:right;color:#ea580c;">₹${totalDebit.toLocaleString('hi-IN')}</td>
         </tr>
-        <tr style="font-weight:700;border-top:1.5px solid #7c3aed;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">शिल्लक:</td>
-          <td style="text-align:right;color:#7c3aed;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
+        <tr class="total-row" style="border-top:3px solid #7c3aed;background:#f5f3ff;">
+          <td colspan="${isAdmin ? 6 : 5}" style="text-align:right;color:#7c3aed;">शिल्लक:</td>
+          <td style="text-align:right;color:#7c3aed;font-size:16px;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
         </tr>
       </tfoot>
     </table>
@@ -232,9 +242,9 @@ const Reports = () => {
   </div>
 
   <div class="footer">
-    <p>Developed By Shree Software | Generated on ${new Date().toLocaleString('mr-IN')}</p>
+    <p>Developed By <strong>Shree Software</strong> | Generated on ${new Date().toLocaleString('mr-IN')}</p>
   </div>
-  <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</script>
+  <script>window.onload = function() { setTimeout(function() { window.print(); }, 600); };</script>
 </body>
 </html>`;
 
