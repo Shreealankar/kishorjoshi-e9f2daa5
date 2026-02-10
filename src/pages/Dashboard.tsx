@@ -20,8 +20,12 @@ const Dashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [addOpen, setAddOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const touchStartY = useRef(0);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
