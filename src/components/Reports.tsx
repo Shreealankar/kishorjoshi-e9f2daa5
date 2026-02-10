@@ -83,38 +83,36 @@ const Reports = () => {
     );
 
     const txnRows = sortedTxns.map((t, i) => `
-      <tr style="border-bottom:1px solid #333;">
-        <td style="padding:6px 8px;text-align:center;">${i + 1}</td>
-        <td style="padding:6px 8px;">${new Date(t.transaction_date).toLocaleDateString('mr-IN')}</td>
-        ${isAdmin ? `<td style="padding:6px 8px;">${memberNames[t.member_id] || '-'}</td>` : ''}
-        <td style="padding:6px 8px;text-align:center;">
-          <span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;
-            ${t.type === 'credit' ? 'background:#0d3320;color:#4ade80;' : 'background:#3d1c0a;color:#fb923c;'}">
+      <tr>
+        <td style="text-align:center;">${i + 1}</td>
+        <td>${new Date(t.transaction_date).toLocaleDateString('mr-IN')}</td>
+        ${isAdmin ? `<td>${memberNames[t.member_id] || '-'}</td>` : ''}
+        <td style="text-align:center;">
+          <span class="type-badge ${t.type === 'credit' ? 'type-credit' : 'type-debit'}">
             ${t.type === 'credit' ? 'जमा' : 'खर्च'}
           </span>
         </td>
-        <td style="padding:6px 8px;">${categories[t.category_id] || 'इतर'}</td>
-        <td style="padding:6px 8px;">${t.description || '-'}</td>
-        <td style="padding:6px 8px;text-align:right;font-weight:600;
-          ${t.type === 'credit' ? 'color:#4ade80;' : 'color:#fb923c;'}">
+        <td>${categories[t.category_id] || 'इतर'}</td>
+        <td>${t.description || '-'}</td>
+        <td style="text-align:right;font-weight:600;color:${t.type === 'credit' ? '#16a34a' : '#ea580c'};">
           ${t.type === 'credit' ? '+' : '-'}₹${Number(t.amount).toLocaleString('hi-IN')}
         </td>
       </tr>
     `).join('');
 
     const catRows = categoryData.map((c) => `
-      <tr style="border-bottom:1px solid #333;">
-        <td style="padding:6px 8px;">${c.name}</td>
-        <td style="padding:6px 8px;text-align:right;color:#fb923c;font-weight:600;">₹${Number(c.value).toLocaleString()}</td>
-        <td style="padding:6px 8px;text-align:right;">${totalDebit > 0 ? ((Number(c.value) / totalDebit) * 100).toFixed(1) : 0}%</td>
+      <tr>
+        <td>${c.name}</td>
+        <td style="text-align:right;color:#ea580c;font-weight:600;">₹${Number(c.value).toLocaleString()}</td>
+        <td style="text-align:right;">${totalDebit > 0 ? ((Number(c.value) / totalDebit) * 100).toFixed(1) : 0}%</td>
       </tr>
     `).join('');
 
     const creditCatRows = creditCategoryData.map((c) => `
-      <tr style="border-bottom:1px solid #333;">
-        <td style="padding:6px 8px;">${c.name}</td>
-        <td style="padding:6px 8px;text-align:right;color:#4ade80;font-weight:600;">₹${Number(c.value).toLocaleString()}</td>
-        <td style="padding:6px 8px;text-align:right;">${totalCredit > 0 ? ((Number(c.value) / totalCredit) * 100).toFixed(1) : 0}%</td>
+      <tr>
+        <td>${c.name}</td>
+        <td style="text-align:right;color:#16a34a;font-weight:600;">₹${Number(c.value).toLocaleString()}</td>
+        <td style="text-align:right;">${totalCredit > 0 ? ((Number(c.value) / totalCredit) * 100).toFixed(1) : 0}%</td>
       </tr>
     `).join('');
 
@@ -123,33 +121,40 @@ const Reports = () => {
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>कुटुंब खर्च अहवाल - ${filterYear}</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI',system-ui,sans-serif; background:#0d1117; color:#c9d1d9; padding:20px; }
-    .header { text-align:center; padding:20px 0; border-bottom:2px solid #7c3aed; margin-bottom:20px; }
-    .header h1 { color:#a78bfa; font-size:24px; margin-bottom:4px; }
-    .header p { color:#8b949e; font-size:13px; }
-    .summary { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
-    .summary-card { flex:1; min-width:140px; padding:16px; border-radius:10px; border:1px solid #30363d; background:#161b22; }
-    .summary-card .label { font-size:12px; color:#8b949e; margin-bottom:4px; }
-    .summary-card .value { font-size:22px; font-weight:700; }
-    .green { color:#4ade80; border-color:#166534; }
-    .orange { color:#fb923c; border-color:#9a3412; }
-    .purple { color:#a78bfa; border-color:#5b21b6; }
-    .section { margin-bottom:24px; }
-    .section h2 { font-size:16px; color:#a78bfa; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #30363d; }
-    table { width:100%; border-collapse:collapse; font-size:13px; }
-    th { padding:8px; text-align:left; background:#161b22; color:#8b949e; font-weight:600; border-bottom:2px solid #30363d; }
-    td { padding:6px 8px; }
-    .footer { text-align:center; padding:16px 0; border-top:1px solid #30363d; margin-top:20px; color:#8b949e; font-size:12px; }
-    .print-btn { display:block; margin:0 auto 20px; padding:10px 24px; background:#7c3aed; color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer; }
-    .print-btn:hover { background:#6d28d9; }
-    @media print { .print-btn { display:none; } body { background:#fff; color:#000; } .summary-card { background:#f5f5f5; border-color:#ddd; } .green { color:#16a34a; } .orange { color:#ea580c; } .purple { color:#7c3aed; } th { background:#f5f5f5; color:#333; } td { color:#333; } .header { border-color:#7c3aed; } .header h1 { color:#7c3aed; } .section h2 { color:#7c3aed; } }
+    body { font-family:'Segoe UI',system-ui,sans-serif; background:#fff; color:#1a1a1a; padding:10px; font-size:11px; }
+    .header { text-align:center; padding:12px 0; border-bottom:2px solid #7c3aed; margin-bottom:12px; }
+    .header h1 { color:#7c3aed; font-size:16px; margin-bottom:2px; }
+    .header p { color:#666; font-size:10px; }
+    .summary { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+    .summary-card { flex:1; min-width:90px; padding:8px; border-radius:6px; border:1.5px solid #ddd; background:#fafafa; text-align:center; }
+    .summary-card .label { font-size:9px; color:#666; margin-bottom:2px; }
+    .summary-card .value { font-size:14px; font-weight:700; }
+    .green { color:#16a34a; border-color:#86efac; }
+    .orange { color:#ea580c; border-color:#fdba74; }
+    .purple { color:#7c3aed; border-color:#c4b5fd; }
+    .section { margin-bottom:16px; page-break-inside:avoid; }
+    .section h2 { font-size:12px; color:#7c3aed; margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid #e5e7eb; }
+    table { width:100%; border-collapse:collapse; font-size:10px; word-break:break-word; }
+    th { padding:4px 3px; text-align:left; background:#f3f4f6; color:#374151; font-weight:600; border-bottom:1.5px solid #d1d5db; font-size:9px; }
+    td { padding:3px; border-bottom:1px solid #e5e7eb; }
+    .footer { text-align:center; padding:10px 0; border-top:1px solid #e5e7eb; margin-top:12px; color:#9ca3af; font-size:9px; }
+    .type-badge { padding:1px 5px; border-radius:3px; font-size:8px; font-weight:600; display:inline-block; }
+    .type-credit { background:#dcfce7; color:#16a34a; }
+    .type-debit { background:#ffedd5; color:#ea580c; }
+    @media print { 
+      body { padding:5mm; font-size:10px; } 
+      .no-print { display:none !important; }
+      table { font-size:9px; }
+      .section { page-break-inside:avoid; }
+    }
   </style>
 </head>
 <body>
-  <button class="print-btn" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
+  <button class="no-print" style="display:block;margin:0 auto 10px;padding:8px 20px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
   
   <div class="header">
     <h1>कुटुंब खर्च व्यवस्थापन</h1>
@@ -178,7 +183,7 @@ const Reports = () => {
     <table>
       <thead><tr><th>वर्गवारी</th><th style="text-align:right;">रक्कम</th><th style="text-align:right;">टक्केवारी</th></tr></thead>
       <tbody>${creditCatRows}</tbody>
-      <tfoot><tr style="border-top:2px solid #30363d;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#4ade80;">₹${totalCredit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
+      <tfoot><tr style="border-top:1.5px solid #d1d5db;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#16a34a;">₹${totalCredit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
     </table>
   </div>` : ''}
 
@@ -188,12 +193,13 @@ const Reports = () => {
     <table>
       <thead><tr><th>वर्गवारी</th><th style="text-align:right;">रक्कम</th><th style="text-align:right;">टक्केवारी</th></tr></thead>
       <tbody>${catRows}</tbody>
-      <tfoot><tr style="border-top:2px solid #30363d;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#fb923c;">₹${totalDebit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
+      <tfoot><tr style="border-top:1.5px solid #d1d5db;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#ea580c;">₹${totalDebit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
     </table>
   </div>` : ''}
 
   <div class="section">
     <h2>सर्व व्यवहार (All Transactions - ${transactions.length})</h2>
+    <div style="overflow-x:auto;">
     <table>
       <thead>
         <tr>
@@ -208,25 +214,27 @@ const Reports = () => {
       </thead>
       <tbody>${txnRows}</tbody>
       <tfoot>
-        <tr style="border-top:2px solid #30363d;font-weight:700;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">एकूण जमा:</td>
-          <td style="text-align:right;color:#4ade80;">₹${totalCredit.toLocaleString('hi-IN')}</td>
+        <tr style="border-top:1.5px solid #d1d5db;font-weight:700;">
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">एकूण जमा:</td>
+          <td style="text-align:right;color:#16a34a;">₹${totalCredit.toLocaleString('hi-IN')}</td>
         </tr>
         <tr style="font-weight:700;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">एकूण खर्च:</td>
-          <td style="text-align:right;color:#fb923c;">₹${totalDebit.toLocaleString('hi-IN')}</td>
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">एकूण खर्च:</td>
+          <td style="text-align:right;color:#ea580c;">₹${totalDebit.toLocaleString('hi-IN')}</td>
         </tr>
-        <tr style="font-weight:700;border-top:2px solid #7c3aed;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">शिल्लक:</td>
-          <td style="text-align:right;color:#a78bfa;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
+        <tr style="font-weight:700;border-top:1.5px solid #7c3aed;">
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">शिल्लक:</td>
+          <td style="text-align:right;color:#7c3aed;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
         </tr>
       </tfoot>
     </table>
+    </div>
   </div>
 
   <div class="footer">
     <p>Developed By Shree Software | Generated on ${new Date().toLocaleString('mr-IN')}</p>
   </div>
+  <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</script>
 </body>
 </html>`;
 
