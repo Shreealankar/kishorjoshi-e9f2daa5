@@ -148,8 +148,26 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Pull to refresh indicator */}
+      {pullDistance > 0 && (
+        <div className="flex justify-center py-2 transition-all" style={{ height: pullDistance }}>
+          <RefreshCw className={`w-5 h-5 text-primary transition-transform ${pullDistance > 50 ? 'animate-spin' : ''}`}
+            style={{ transform: `rotate(${pullDistance * 3}deg)` }} />
+        </div>
+      )}
+      {isRefreshing && (
+        <div className="flex justify-center py-2">
+          <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+        </div>
+      )}
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 overflow-y-auto">
+      <main
+        ref={mainRef}
+        className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 overflow-y-auto"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
           {/* Desktop Tabs */}
           <div className="hidden md:block">
