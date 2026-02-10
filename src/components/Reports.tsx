@@ -364,7 +364,7 @@ const Reports = () => {
                   <div key={c.name} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                     <span className="truncate">{c.name}</span>
-                    <span className="ml-auto text-foreground font-medium">₹{c.value.toLocaleString('hi-IN')}</span>
+                    <span className="ml-auto text-foreground font-medium">₹{Number(c.value).toLocaleString()}</span>
                   </div>
                 ))}
               </div>
