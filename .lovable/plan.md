@@ -1,44 +1,46 @@
 
 
-# कुटुंब खर्च व्यवस्थापन (Family Expenses Management App)
+# Plan: PDF Data Sync Fix + Login Save Feature
 
-A Marathi-language family expense tracker with admin-managed members, credit/debit tracking, categories, and reports — backed by Supabase.
+## Issue 1: PDF मध्ये सर्व सदस्यांचा डेटा दिसत नाही
+
+**Problem**: When admin selects "सर्व सदस्य" and generates PDF, member names may not appear correctly. Also, Supabase has a default 1000-row limit which could cause missing transactions.
+
+**Fix**:
+- Add `.limit(10000)` to the transactions query to fetch all records
+- Ensure `memberNames` map is always populated before PDF generation
+- Add a "सर्व सदस्य" label in the PDF header when all members are selected vs specific member name
+
+## Issue 2: Login Save (Remember Me)
+
+**Problem**: User wants login credentials to be remembered so they don't have to enter name/password every time.
+
+**Fix**:
+- Add a "लॉगिन लक्षात ठेवा" (Remember Me) checkbox on the Login page
+- When checked, save encrypted credentials in localStorage
+- On next visit, auto-fill the name and password fields
+- User can uncheck to clear saved credentials
 
 ---
 
-## 1. Login System (लॉगिन)
-- Simple login with **सदस्य नाव (Member Name)** and **पासवर्ड (Password)** — no email required
-- Admin account created first, admin can add/remove family members
-- Each member gets their own login credentials
+## Technical Details
 
-## 2. Admin Dashboard (व्यवस्थापक पॅनेल)
-- **Add/edit/delete family members** with name and password
-- **View all members' transactions** — full visibility of credit and debit
-- Overview of total family income vs expenses
+### Files to modify:
 
-## 3. Member Dashboard (सदस्य पॅनेल)
-- Each member sees **only their own** credit/debit entries
-- Quick summary: total जमा (credit), total खर्च (debit), शिल्लक (balance)
+**1. `src/components/Reports.tsx`**
+- Add `.limit(10000)` to transactions query to avoid row limit
+- Ensure member names are fetched reliably for PDF
+- When `filterMember` is a specific member, show that member's name in PDF subtitle
 
-## 4. Credit & Debit Management (जमा आणि खर्च)
-- **Add जमा (Credit)**: amount, date, description, category
-- **Add खर्च (Debit)**: amount, date, description, category
-- Edit and delete entries
-- **Categories (वर्गवारी)**: भाजीपाला, किराणा, बिल, वैद्यकीय, शिक्षण, प्रवास, इतर etc.
+**2. `src/pages/Login.tsx`**
+- Add `rememberMe` state with checkbox UI
+- On successful login with "Remember Me" checked, save name and password to localStorage (`family_app_remember`)
+- On page load, check localStorage and auto-fill fields
+- Add "लॉगिन लक्षात ठेवा" checkbox between password field and login button
 
-## 5. Reports & Charts (अहवाल आणि तक्ते)
-- Monthly/weekly summary with bar/pie charts
-- Income vs Expense comparison
-- Category-wise breakdown
-- Filter by date range and member (admin only)
+**3. `src/contexts/AuthContext.tsx`**
+- No changes needed - session persistence already works via localStorage
 
-## 6. Full Marathi UI (संपूर्ण मराठी)
-- All labels, buttons, messages, and navigation in Marathi
-- Clean, simple design suitable for all ages
-
-## 7. Backend (Supabase)
-- **Members table**: name, password (hashed), role (admin/member)
-- **Transactions table**: member_id, type (credit/debit), amount, category, description, date
-- **Categories table**: predefined Marathi categories
-- Row Level Security: members see only their data, admin sees everything
+### Security Note:
+- Saved credentials will be stored in localStorage (base64 encoded) - acceptable for this family app context where devices are shared within family
 
