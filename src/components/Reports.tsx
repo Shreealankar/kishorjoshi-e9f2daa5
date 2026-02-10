@@ -242,7 +242,8 @@ const Reports = () => {
   <div class="footer">
     <p>Developed By <strong>Shree Software</strong> | Generated on ${new Date().toLocaleString('mr-IN')}</p>
   </div>
-  <script>window.onload = function() { setTimeout(function() { window.print(); }, 600); };</script>
+  </div>
+  <script>window.onload = function() { setTimeout(function() { window.print(); }, 800); };</script>
 </body>
 </html>`;
 
