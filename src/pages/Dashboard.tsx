@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Users, PlusCircle, LayoutDashboard, History, Settings, TrendingUp, TrendingDown, IndianRupee, Calendar, BarChart3, Wallet } from 'lucide-react';
+import { LogOut, Users, PlusCircle, LayoutDashboard, History, TrendingUp, TrendingDown, IndianRupee, Calendar, BarChart3, Wallet, RefreshCw } from 'lucide-react';
 import MemberManagement from '@/components/MemberManagement';
 import TransactionList from '@/components/TransactionList';
 import AddTransaction from '@/components/AddTransaction';
 import Reports from '@/components/Reports';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+
+const TABS = ['dashboard', 'history', 'reports', 'members'] as const;
 
 const Dashboard = () => {
   const { user, logout, isAdmin } = useAuth();
@@ -18,6 +20,14 @@ const Dashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [addOpen, setAddOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const touchStartY = useRef(0);
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  // Swipe navigation
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
@@ -38,6 +48,49 @@ const Dashboard = () => {
 
   const refresh = () => { setRefreshKey(k => k + 1); setAddOpen(false); };
   const balance = summary.credit - summary.debit;
+
+  // Pull to refresh
+  const handlePullRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchSummary();
+    setRefreshKey(k => k + 1);
+    setTimeout(() => setIsRefreshing(false), 600);
+  }, [user]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentY = e.touches[0].clientY;
+    touchEndX.current = e.touches[0].clientX;
+    const diff = currentY - touchStartY.current;
+    if (mainRef.current && mainRef.current.scrollTop === 0 && diff > 0) {
+      setPullDistance(Math.min(diff * 0.4, 80));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    // Pull to refresh
+    if (pullDistance > 50) {
+      handlePullRefresh();
+    }
+    setPullDistance(0);
+
+    // Swipe navigation
+    const diffX = touchStartX.current - touchEndX.current;
+    if (Math.abs(diffX) > 60) {
+      const availableTabs = isAdmin ? TABS : TABS.filter(t => t !== 'members');
+      const currentIdx = availableTabs.indexOf(activeTab as any);
+      if (diffX > 0 && currentIdx < availableTabs.length - 1) {
+        setActiveTab(availableTabs[currentIdx + 1]);
+      } else if (diffX < 0 && currentIdx > 0) {
+        setActiveTab(availableTabs[currentIdx - 1]);
+      }
+    }
+    touchEndX.current = 0;
+  };
 
   if (!user) return null;
 
@@ -80,9 +133,28 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6">
+      {/* Pull to refresh indicator */}
+      {pullDistance > 0 && (
+        <div className="flex justify-center py-2 transition-all" style={{ height: pullDistance }}>
+          <RefreshCw className={`w-5 h-5 text-primary transition-transform ${pullDistance > 50 ? 'animate-spin' : ''}`}
+            style={{ transform: `rotate(${pullDistance * 3}deg)` }} />
+        </div>
+      )}
+      {isRefreshing && (
+        <div className="flex justify-center py-2">
+          <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+        </div>
+      )}
+
+      <main
+        ref={mainRef}
+        className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 overflow-y-auto"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          {/* Desktop Tabs - hidden on mobile */}
+          {/* Desktop Tabs */}
           <div className="hidden md:block">
             <TabsList className="bg-secondary border border-border">
               <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-1.5">
@@ -105,7 +177,6 @@ const Dashboard = () => {
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6 mt-0">
             <h2 className="text-xl sm:text-2xl font-bold text-foreground">डॅशबोर्ड</h2>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="rounded-xl border border-[hsl(145,60%,35%)] bg-card p-4 sm:p-5 space-y-2">
                 <div className="flex items-center justify-between">
@@ -116,57 +187,42 @@ const Dashboard = () => {
                   ₹{balance.toLocaleString('hi-IN')}
                 </p>
               </div>
-
               <div className="rounded-xl border border-[hsl(160,50%,35%)] bg-card p-4 sm:p-5 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs sm:text-sm text-muted-foreground">एकूण उत्पन्न</span>
                   <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[hsl(145,60%,45%)]" />
                 </div>
-                <p className="text-xl sm:text-2xl font-bold text-[hsl(145,60%,45%)]">
-                  ₹{summary.credit.toLocaleString('hi-IN')}
-                </p>
+                <p className="text-xl sm:text-2xl font-bold text-[hsl(145,60%,45%)]">₹{summary.credit.toLocaleString('hi-IN')}</p>
               </div>
-
               <div className="rounded-xl border border-[hsl(30,80%,45%)] bg-card p-4 sm:p-5 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs sm:text-sm text-muted-foreground">एकूण खर्च</span>
                   <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-[hsl(30,80%,55%)]" />
                 </div>
-                <p className="text-xl sm:text-2xl font-bold text-[hsl(30,80%,55%)]">
-                  ₹{summary.debit.toLocaleString('hi-IN')}
-                </p>
+                <p className="text-xl sm:text-2xl font-bold text-[hsl(30,80%,55%)]">₹{summary.debit.toLocaleString('hi-IN')}</p>
               </div>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="rounded-xl border border-[hsl(45,60%,40%)] bg-gradient-to-r from-card to-[hsl(45,20%,12%)] p-4 sm:p-5 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs sm:text-sm text-muted-foreground">सरासरी दैनिक खर्च</span>
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[hsl(45,60%,55%)]" />
                 </div>
-                <p className="text-xl sm:text-2xl font-bold text-[hsl(145,60%,45%)]">
-                  ₹{summary.debit > 0 ? Math.round(summary.debit / 30).toLocaleString('hi-IN') : '0'}
-                </p>
+                <p className="text-xl sm:text-2xl font-bold text-[hsl(145,60%,45%)]">₹{summary.debit > 0 ? Math.round(summary.debit / 30).toLocaleString('hi-IN') : '0'}</p>
               </div>
-
               <div className="rounded-xl border border-[hsl(270,40%,40%)] bg-gradient-to-r from-card to-[hsl(270,20%,14%)] p-4 sm:p-5 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs sm:text-sm text-muted-foreground">सरासरी दैनिक उत्पन्न</span>
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[hsl(270,60%,60%)]" />
                 </div>
-                <p className="text-xl sm:text-2xl font-bold text-[hsl(145,60%,45%)]">
-                  ₹{summary.credit > 0 ? Math.round(summary.credit / 30).toLocaleString('hi-IN') : '0'}
-                </p>
+                <p className="text-xl sm:text-2xl font-bold text-[hsl(145,60%,45%)]">₹{summary.credit > 0 ? Math.round(summary.credit / 30).toLocaleString('hi-IN') : '0'}</p>
               </div>
-
               <div className="rounded-xl border border-[hsl(200,40%,35%)] bg-card p-4 sm:p-5 space-y-2 sm:col-span-2 lg:col-span-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs sm:text-sm text-muted-foreground">एकूण व्यवहार</span>
                   <IndianRupee className="w-4 h-4 sm:w-5 sm:h-5 text-[hsl(200,50%,55%)]" />
                 </div>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">
-                  ₹{(summary.credit + summary.debit).toLocaleString('hi-IN')}
-                </p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">₹{(summary.credit + summary.debit).toLocaleString('hi-IN')}</p>
               </div>
             </div>
           </TabsContent>
@@ -187,7 +243,6 @@ const Dashboard = () => {
         </Tabs>
       </main>
 
-      {/* Desktop Footer */}
       <footer className="hidden md:block border-t border-border py-4 text-center text-sm text-muted-foreground">
         <p>Developed By Shree Software</p>
       </footer>
