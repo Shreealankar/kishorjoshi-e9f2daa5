@@ -1,20 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn, Wallet } from 'lucide-react';
+
+const REMEMBER_KEY = 'family_app_remember';
 
 const Login = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(REMEMBER_KEY);
+      if (saved) {
+        const { n, p } = JSON.parse(atob(saved));
+        setName(n);
+        setPassword(p);
+        setRememberMe(true);
+      }
+    } catch {
+      localStorage.removeItem(REMEMBER_KEY);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +44,11 @@ const Login = () => {
     const success = await login(name.trim(), password);
     setIsLoading(false);
     if (success) {
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_KEY, btoa(JSON.stringify({ n: name.trim(), p: password })));
+      } else {
+        localStorage.removeItem(REMEMBER_KEY);
+      }
       toast({ title: 'लॉगिन यशस्वी!' });
       navigate('/dashboard');
     } else {
@@ -71,6 +94,16 @@ const Login = () => {
                 className="bg-secondary border-border"
                 maxLength={50}
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="rememberMe"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+              />
+              <Label htmlFor="rememberMe" className="text-sm text-muted-foreground cursor-pointer">
+                लॉगिन लक्षात ठेवा
+              </Label>
             </div>
             <Button
               type="submit"

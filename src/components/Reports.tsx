@@ -43,7 +43,7 @@ const Reports = () => {
     let query = supabase.from('transactions').select('*');
     if (!isAdmin) query = query.eq('member_id', user.id);
     else if (filterMember !== 'all') query = query.eq('member_id', filterMember);
-    query = query.gte('transaction_date', `${filterYear}-01-01`).lte('transaction_date', `${filterYear}-12-31`);
+    query = query.gte('transaction_date', `${filterYear}-01-01`).lte('transaction_date', `${filterYear}-12-31`).limit(10000);
     const { data } = await query;
     if (data) setTransactions(data);
   };
@@ -171,7 +171,7 @@ const Reports = () => {
   
   <div class="header">
     <h1>📊 कुटुंब खर्च व्यवस्थापन</h1>
-    <p class="subtitle">वार्षिक अहवाल - ${filterYear} | ${user?.name || ''} ${isAdmin ? '(व्यवस्थापक)' : '(सदस्य)'}</p>
+    <p class="subtitle">वार्षिक अहवाल - ${filterYear} | ${isAdmin ? (filterMember === 'all' ? 'सर्व सदस्य' : (memberNames[filterMember] || user?.name || '')) : (user?.name || '')} ${isAdmin ? '(व्यवस्थापक)' : '(सदस्य)'}</p>
     <p class="date">तारीख: ${new Date().toLocaleDateString('mr-IN')}</p>
   </div>
 
