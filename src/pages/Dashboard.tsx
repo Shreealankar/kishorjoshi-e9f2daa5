@@ -68,48 +68,6 @@ const Dashboard = () => {
   const refresh = () => { setRefreshKey(k => k + 1); setAddOpen(false); };
   const balance = summary.credit - summary.debit;
 
-  // Pull to refresh
-  const handlePullRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await fetchSummary();
-    setRefreshKey(k => k + 1);
-    setTimeout(() => setIsRefreshing(false), 600);
-  }, [user]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const currentY = e.touches[0].clientY;
-    touchEndX.current = e.touches[0].clientX;
-    const diff = currentY - touchStartY.current;
-    if (mainRef.current && mainRef.current.scrollTop === 0 && diff > 0) {
-      setPullDistance(Math.min(diff * 0.4, 80));
-    }
-  };
-
-  const handleTouchEnd = () => {
-    // Pull to refresh
-    if (pullDistance > 50) {
-      handlePullRefresh();
-    }
-    setPullDistance(0);
-
-    // Swipe navigation
-    const diffX = touchStartX.current - touchEndX.current;
-    if (Math.abs(diffX) > 60) {
-      const availableTabs = isAdmin ? TABS : TABS.filter(t => t !== 'members');
-      const currentIdx = availableTabs.indexOf(activeTab as any);
-      if (diffX > 0 && currentIdx < availableTabs.length - 1) {
-        setActiveTab(availableTabs[currentIdx + 1]);
-      } else if (diffX < 0 && currentIdx > 0) {
-        setActiveTab(availableTabs[currentIdx - 1]);
-      }
-    }
-    touchEndX.current = 0;
-  };
 
   if (!user) return null;
 
