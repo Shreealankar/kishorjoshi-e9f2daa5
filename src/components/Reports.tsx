@@ -183,7 +183,7 @@ const Reports = () => {
     <table>
       <thead><tr><th>वर्गवारी</th><th style="text-align:right;">रक्कम</th><th style="text-align:right;">टक्केवारी</th></tr></thead>
       <tbody>${creditCatRows}</tbody>
-      <tfoot><tr style="border-top:2px solid #30363d;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#4ade80;">₹${totalCredit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
+      <tfoot><tr style="border-top:1.5px solid #d1d5db;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#16a34a;">₹${totalCredit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
     </table>
   </div>` : ''}
 
