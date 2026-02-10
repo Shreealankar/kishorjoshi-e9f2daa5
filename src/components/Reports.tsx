@@ -83,20 +83,18 @@ const Reports = () => {
     );
 
     const txnRows = sortedTxns.map((t, i) => `
-      <tr style="border-bottom:1px solid #333;">
-        <td style="padding:6px 8px;text-align:center;">${i + 1}</td>
-        <td style="padding:6px 8px;">${new Date(t.transaction_date).toLocaleDateString('mr-IN')}</td>
-        ${isAdmin ? `<td style="padding:6px 8px;">${memberNames[t.member_id] || '-'}</td>` : ''}
-        <td style="padding:6px 8px;text-align:center;">
-          <span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;
-            ${t.type === 'credit' ? 'background:#0d3320;color:#4ade80;' : 'background:#3d1c0a;color:#fb923c;'}">
+      <tr>
+        <td style="text-align:center;">${i + 1}</td>
+        <td>${new Date(t.transaction_date).toLocaleDateString('mr-IN')}</td>
+        ${isAdmin ? `<td>${memberNames[t.member_id] || '-'}</td>` : ''}
+        <td style="text-align:center;">
+          <span class="type-badge ${t.type === 'credit' ? 'type-credit' : 'type-debit'}">
             ${t.type === 'credit' ? 'जमा' : 'खर्च'}
           </span>
         </td>
-        <td style="padding:6px 8px;">${categories[t.category_id] || 'इतर'}</td>
-        <td style="padding:6px 8px;">${t.description || '-'}</td>
-        <td style="padding:6px 8px;text-align:right;font-weight:600;
-          ${t.type === 'credit' ? 'color:#4ade80;' : 'color:#fb923c;'}">
+        <td>${categories[t.category_id] || 'इतर'}</td>
+        <td>${t.description || '-'}</td>
+        <td style="text-align:right;font-weight:600;color:${t.type === 'credit' ? '#16a34a' : '#ea580c'};">
           ${t.type === 'credit' ? '+' : '-'}₹${Number(t.amount).toLocaleString('hi-IN')}
         </td>
       </tr>
