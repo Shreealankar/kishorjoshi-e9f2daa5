@@ -118,18 +118,6 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Pull to refresh indicator */}
-      {pullDistance > 0 && (
-        <div className="flex justify-center py-2 transition-all" style={{ height: pullDistance }}>
-          <RefreshCw className={`w-5 h-5 text-primary transition-transform ${pullDistance > 50 ? 'animate-spin' : ''}`}
-            style={{ transform: `rotate(${pullDistance * 3}deg)` }} />
-        </div>
-      )}
-      {isRefreshing && (
-        <div className="flex justify-center py-2">
-          <RefreshCw className="w-5 h-5 text-primary animate-spin" />
-        </div>
-      )}
 
       <main
         ref={mainRef}
