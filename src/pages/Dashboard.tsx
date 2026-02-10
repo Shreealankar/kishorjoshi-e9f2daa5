@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Users, PlusCircle, LayoutDashboard, History, TrendingUp, TrendingDown, IndianRupee, Calendar, BarChart3, Wallet, RefreshCw } from 'lucide-react';
+import { LogOut, Users, PlusCircle, LayoutDashboard, History, TrendingUp, TrendingDown, IndianRupee, Calendar, BarChart3, Wallet, RefreshCw, Download } from 'lucide-react';
 import MemberManagement from '@/components/MemberManagement';
 import TransactionList from '@/components/TransactionList';
 import AddTransaction from '@/components/AddTransaction';
