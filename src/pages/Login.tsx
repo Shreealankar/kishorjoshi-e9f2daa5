@@ -20,6 +20,20 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(REMEMBER_KEY);
+      if (saved) {
+        const { n, p } = JSON.parse(atob(saved));
+        setName(n);
+        setPassword(p);
+        setRememberMe(true);
+      }
+    } catch {
+      localStorage.removeItem(REMEMBER_KEY);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !password.trim()) {
