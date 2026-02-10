@@ -22,6 +22,8 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
   const touchStartY = useRef(0);
   const mainRef = useRef<HTMLDivElement>(null);
 
