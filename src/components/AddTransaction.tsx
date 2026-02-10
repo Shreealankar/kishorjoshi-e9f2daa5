@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -67,89 +65,65 @@ const AddTransaction = ({ onAdded }: { onAdded: () => void }) => {
       toast({ title: 'व्यवहार जोडता आला नाही', variant: 'destructive' });
     } else {
       toast({ title: type === 'credit' ? 'जमा यशस्वी!' : 'खर्च नोंदवला!' });
-      setAmount('');
-      setDescription('');
-      setCategoryId('');
+      setAmount(''); setDescription(''); setCategoryId('');
       onAdded();
     }
   };
 
   return (
-    <Card className="border-orange-200">
-      <CardHeader>
-        <CardTitle className="text-orange-900 flex items-center gap-2">
-          <PlusCircle className="w-5 h-5" /> नवीन व्यवहार जोडा
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>प्रकार</Label>
-            <Select value={type} onValueChange={setType}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="credit">जमा (Credit)</SelectItem>
-                <SelectItem value="debit">खर्च (Debit)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>रक्कम (₹)</Label>
-            <Input
-              type="number"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="0.00"
-              min="0.01"
-              step="0.01"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>वर्गवारी</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger><SelectValue placeholder="निवडा" /></SelectTrigger>
-              <SelectContent>
-                {categories.map(c => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>तारीख</Label>
-            <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          {isAdmin && (
-            <div className="space-y-2">
-              <Label>सदस्य</Label>
-              <Select value={selectedMember || user?.id || ''} onValueChange={setSelectedMember}>
-                <SelectTrigger><SelectValue placeholder="निवडा" /></SelectTrigger>
-                <SelectContent>
-                  {members.map(m => (
-                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <div className="space-y-2">
-            <Label>वर्णन</Label>
-            <Textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="तपशील लिहा (ऐच्छिक)"
-              className="h-10 min-h-[40px]"
-              maxLength={200}
-            />
-          </div>
-          <div className="flex items-end">
-            <Button type="submit" disabled={loading} className="w-full bg-orange-600 hover:bg-orange-700">
-              {loading ? 'जोडत आहे...' : 'जोडा'}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label className="text-foreground">प्रकार</Label>
+        <Select value={type} onValueChange={setType}>
+          <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+          <SelectContent className="bg-card border-border">
+            <SelectItem value="credit">जमा (Credit)</SelectItem>
+            <SelectItem value="debit">खर्च (Debit)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label className="text-foreground">रक्कम (₹)</Label>
+        <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" min="0.01" step="0.01" className="bg-secondary border-border" />
+      </div>
+      <div className="space-y-2">
+        <Label className="text-foreground">वर्गवारी</Label>
+        <Select value={categoryId} onValueChange={setCategoryId}>
+          <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="निवडा" /></SelectTrigger>
+          <SelectContent className="bg-card border-border">
+            {categories.map(c => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label className="text-foreground">तारीख</Label>
+        <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="bg-secondary border-border" />
+      </div>
+      {isAdmin && (
+        <div className="space-y-2">
+          <Label className="text-foreground">सदस्य</Label>
+          <Select value={selectedMember || user?.id || ''} onValueChange={setSelectedMember}>
+            <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="निवडा" /></SelectTrigger>
+            <SelectContent className="bg-card border-border">
+              {members.map(m => (
+                <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <div className="space-y-2">
+        <Label className="text-foreground">वर्णन</Label>
+        <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="तपशील लिहा (ऐच्छिक)" className="h-10 min-h-[40px] bg-secondary border-border" maxLength={200} />
+      </div>
+      <div className="flex items-end md:col-span-2">
+        <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+          {loading ? 'जोडत आहे...' : 'व्यवहार जोडा'}
+        </Button>
+      </div>
+    </form>
   );
 };
 
