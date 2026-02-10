@@ -49,7 +49,7 @@ const MemberManagement = () => {
     const { error } = await supabase.rpc('create_member', {
       _name: newName.trim(),
       _password: newPassword,
-      _role: newRole,
+      _role: newRole as 'admin' | 'member',
     });
     setLoading(false);
     if (error) {
