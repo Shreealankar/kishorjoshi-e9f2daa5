@@ -95,6 +95,16 @@ const Login = () => {
                 maxLength={50}
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="rememberMe"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+              />
+              <Label htmlFor="rememberMe" className="text-sm text-muted-foreground cursor-pointer">
+                लॉगिन लक्षात ठेवा
+              </Label>
+            </div>
             <Button
               type="submit"
               disabled={isLoading}
