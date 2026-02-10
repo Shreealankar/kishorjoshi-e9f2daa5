@@ -193,12 +193,13 @@ const Reports = () => {
     <table>
       <thead><tr><th>वर्गवारी</th><th style="text-align:right;">रक्कम</th><th style="text-align:right;">टक्केवारी</th></tr></thead>
       <tbody>${catRows}</tbody>
-      <tfoot><tr style="border-top:2px solid #30363d;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#fb923c;">₹${totalDebit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
+      <tfoot><tr style="border-top:1.5px solid #d1d5db;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#ea580c;">₹${totalDebit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
     </table>
   </div>` : ''}
 
   <div class="section">
     <h2>सर्व व्यवहार (All Transactions - ${transactions.length})</h2>
+    <div style="overflow-x:auto;">
     <table>
       <thead>
         <tr>
@@ -213,25 +214,27 @@ const Reports = () => {
       </thead>
       <tbody>${txnRows}</tbody>
       <tfoot>
-        <tr style="border-top:2px solid #30363d;font-weight:700;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">एकूण जमा:</td>
-          <td style="text-align:right;color:#4ade80;">₹${totalCredit.toLocaleString('hi-IN')}</td>
+        <tr style="border-top:1.5px solid #d1d5db;font-weight:700;">
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">एकूण जमा:</td>
+          <td style="text-align:right;color:#16a34a;">₹${totalCredit.toLocaleString('hi-IN')}</td>
         </tr>
         <tr style="font-weight:700;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">एकूण खर्च:</td>
-          <td style="text-align:right;color:#fb923c;">₹${totalDebit.toLocaleString('hi-IN')}</td>
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">एकूण खर्च:</td>
+          <td style="text-align:right;color:#ea580c;">₹${totalDebit.toLocaleString('hi-IN')}</td>
         </tr>
-        <tr style="font-weight:700;border-top:2px solid #7c3aed;">
-          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">शिल्लक:</td>
-          <td style="text-align:right;color:#a78bfa;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
+        <tr style="font-weight:700;border-top:1.5px solid #7c3aed;">
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:4px;text-align:right;">शिल्लक:</td>
+          <td style="text-align:right;color:#7c3aed;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
         </tr>
       </tfoot>
     </table>
+    </div>
   </div>
 
   <div class="footer">
     <p>Developed By Shree Software | Generated on ${new Date().toLocaleString('mr-IN')}</p>
   </div>
+  <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</script>
 </body>
 </html>`;
 
