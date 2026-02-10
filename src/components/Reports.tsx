@@ -43,7 +43,7 @@ const Reports = () => {
     let query = supabase.from('transactions').select('*');
     if (!isAdmin) query = query.eq('member_id', user.id);
     else if (filterMember !== 'all') query = query.eq('member_id', filterMember);
-    query = query.gte('transaction_date', `${filterYear}-01-01`).lte('transaction_date', `${filterYear}-12-31`);
+    query = query.gte('transaction_date', `${filterYear}-01-01`).lte('transaction_date', `${filterYear}-12-31`).limit(10000);
     const { data } = await query;
     if (data) setTransactions(data);
   };
