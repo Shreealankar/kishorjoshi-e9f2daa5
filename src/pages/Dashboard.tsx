@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Users, PlusCircle, LayoutDashboard, History, TrendingUp, TrendingDown, IndianRupee, Calendar, BarChart3, Wallet, RefreshCw } from 'lucide-react';
+import { LogOut, Users, PlusCircle, LayoutDashboard, History, TrendingUp, TrendingDown, IndianRupee, Calendar, BarChart3, Wallet, RefreshCw, Download } from 'lucide-react';
 import MemberManagement from '@/components/MemberManagement';
 import TransactionList from '@/components/TransactionList';
 import AddTransaction from '@/components/AddTransaction';
@@ -22,6 +22,8 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
   const touchStartY = useRef(0);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +35,31 @@ const Dashboard = () => {
     if (!user) { navigate('/'); return; }
     fetchSummary();
   }, [user, refreshKey]);
+
+  // PWA install prompt
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsAppInstalled(true);
+      }
+      setDeferredPrompt(null);
+    }
+  };
 
   const fetchSummary = async () => {
     if (!user) return;
@@ -111,6 +138,14 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {!isAppInstalled && deferredPrompt && (
+              <Button size="sm" variant="outline" onClick={handleInstallClick}
+                className="gap-1 text-xs sm:text-sm px-2 sm:px-3 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">App डाउनलोड</span>
+                <span className="sm:hidden">Install</span>
+              </Button>
+            )}
             <Dialog open={addOpen} onOpenChange={setAddOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1 text-xs sm:text-sm px-2 sm:px-4">
