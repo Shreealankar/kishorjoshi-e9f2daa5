@@ -124,47 +124,45 @@ const Reports = () => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>कुटुंब खर्च अहवाल - ${filterYear}</title>
   <style>
+    @page { size:A4; margin:12mm 10mm; }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI','Noto Sans Devanagari',system-ui,sans-serif; background:#fff; color:#1f2937; padding:24px 16px; font-size:14px; line-height:1.5; max-width:800px; margin:0 auto; }
-    .header { text-align:center; padding:24px 0 16px; border-bottom:3px solid #7c3aed; margin-bottom:24px; }
-    .header h1 { color:#7c3aed; font-size:26px; font-weight:800; margin-bottom:4px; letter-spacing:0.5px; }
-    .header .subtitle { color:#6b7280; font-size:14px; margin-bottom:2px; }
-    .header .date { color:#9ca3af; font-size:12px; }
-    .summary { display:flex; gap:12px; margin-bottom:28px; }
-    .summary-card { flex:1; padding:16px 12px; border-radius:10px; border:2px solid #e5e7eb; background:#f9fafb; text-align:center; }
-    .summary-card .label { font-size:12px; color:#6b7280; margin-bottom:6px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; }
-    .summary-card .value { font-size:22px; font-weight:800; }
+    body { font-family:'Segoe UI','Noto Sans Devanagari',system-ui,sans-serif; background:#fff; color:#1f2937; padding:0; font-size:15px; line-height:1.6; }
+    .container { max-width:100%; padding:20px; }
+    .header { text-align:center; padding:20px 0 14px; border-bottom:3px solid #7c3aed; margin-bottom:20px; }
+    .header h1 { color:#7c3aed; font-size:28px; font-weight:800; margin-bottom:6px; }
+    .header .subtitle { color:#4b5563; font-size:15px; margin-bottom:3px; }
+    .header .date { color:#6b7280; font-size:13px; }
+    .summary { display:flex; gap:10px; margin-bottom:24px; }
+    .summary-card { flex:1; padding:14px 10px; border-radius:10px; border:2px solid #e5e7eb; background:#f9fafb; text-align:center; }
+    .summary-card .label { font-size:12px; color:#6b7280; margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+    .summary-card .value { font-size:24px; font-weight:800; }
     .green { color:#16a34a; border-color:#bbf7d0 !important; background:#f0fdf4 !important; }
     .orange { color:#ea580c; border-color:#fed7aa !important; background:#fff7ed !important; }
     .purple { color:#7c3aed; border-color:#ddd6fe !important; background:#f5f3ff !important; }
-    .section { margin-bottom:28px; page-break-inside:avoid; }
-    .section h2 { font-size:16px; color:#7c3aed; font-weight:700; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid #e5e7eb; }
-    table { width:100%; border-collapse:collapse; font-size:13px; }
-    th { padding:10px 8px; text-align:left; background:#f3f4f6; color:#374151; font-weight:700; border-bottom:2px solid #d1d5db; font-size:12px; text-transform:uppercase; letter-spacing:0.3px; }
+    .section { margin-bottom:24px; page-break-inside:avoid; }
+    .section h2 { font-size:17px; color:#7c3aed; font-weight:700; margin-bottom:10px; padding-bottom:6px; border-bottom:2px solid #e5e7eb; }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th { padding:10px 8px; text-align:left; background:#f3f4f6; color:#374151; font-weight:700; border-bottom:2px solid #d1d5db; font-size:13px; }
     td { padding:8px; border-bottom:1px solid #e5e7eb; vertical-align:middle; }
     tr:nth-child(even) { background:#f9fafb; }
-    .footer { text-align:center; padding:20px 0; border-top:2px solid #e5e7eb; margin-top:24px; color:#9ca3af; font-size:11px; }
-    .type-badge { padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; display:inline-block; }
+    .footer { text-align:center; padding:16px 0; border-top:2px solid #e5e7eb; margin-top:20px; color:#9ca3af; font-size:12px; }
+    .type-badge { padding:3px 10px; border-radius:12px; font-size:12px; font-weight:700; display:inline-block; }
     .type-credit { background:#dcfce7; color:#16a34a; }
     .type-debit { background:#ffedd5; color:#ea580c; }
-    .total-row td { font-weight:700; font-size:14px; padding:10px 8px; }
+    .total-row td { font-weight:700; font-size:15px; padding:10px 8px; }
     @media print { 
-      body { padding:10mm; font-size:12px; } 
+      body { padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
       .no-print { display:none !important; }
+      .container { padding:0; }
       .section { page-break-inside:avoid; }
-    }
-    @media (max-width:500px) {
-      body { padding:12px 8px; font-size:13px; }
-      .header h1 { font-size:20px; }
-      .summary { flex-direction:column; gap:8px; }
-      .summary-card .value { font-size:18px; }
-      table { font-size:11px; }
-      th, td { padding:6px 4px; }
+      table { font-size:12px; }
+      th { font-size:11px; }
     }
   </style>
 </head>
 <body>
-  <button class="no-print" style="display:block;width:100%;max-width:300px;margin:0 auto 20px;padding:12px 24px;background:#7c3aed;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(124,58,237,0.3);" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
+  <div class="container">
+  <button class="no-print" style="display:block;width:100%;max-width:320px;margin:0 auto 20px;padding:14px 24px;background:#7c3aed;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,0.3);" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
   
   <div class="header">
     <h1>📊 कुटुंब खर्च व्यवस्थापन</h1>
@@ -244,7 +242,8 @@ const Reports = () => {
   <div class="footer">
     <p>Developed By <strong>Shree Software</strong> | Generated on ${new Date().toLocaleString('mr-IN')}</p>
   </div>
-  <script>window.onload = function() { setTimeout(function() { window.print(); }, 600); };</script>
+  </div>
+  <script>window.onload = function() { setTimeout(function() { window.print(); }, 800); };</script>
 </body>
 </html>`;
 
