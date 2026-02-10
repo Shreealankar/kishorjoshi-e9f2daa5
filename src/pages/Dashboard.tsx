@@ -138,6 +138,14 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {!isAppInstalled && deferredPrompt && (
+              <Button size="sm" variant="outline" onClick={handleInstallClick}
+                className="gap-1 text-xs sm:text-sm px-2 sm:px-3 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">App डाउनलोड</span>
+                <span className="sm:hidden">Install</span>
+              </Button>
+            )}
             <Dialog open={addOpen} onOpenChange={setAddOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1 text-xs sm:text-sm px-2 sm:px-4">
