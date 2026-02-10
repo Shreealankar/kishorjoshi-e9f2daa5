@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Users, PlusCircle, LayoutDashboard, History, TrendingUp, TrendingDown, IndianRupee, Calendar, BarChart3, Wallet, RefreshCw, Download } from 'lucide-react';
+import { LogOut, Users, PlusCircle, LayoutDashboard, History, TrendingUp, TrendingDown, IndianRupee, Calendar, BarChart3, Wallet, Download } from 'lucide-react';
 import MemberManagement from '@/components/MemberManagement';
 import TransactionList from '@/components/TransactionList';
 import AddTransaction from '@/components/AddTransaction';
@@ -20,16 +20,8 @@ const Dashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [addOpen, setAddOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [pullDistance, setPullDistance] = useState(0);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
-  const touchStartY = useRef(0);
-  const mainRef = useRef<HTMLDivElement>(null);
-
-  // Swipe navigation
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
@@ -76,48 +68,6 @@ const Dashboard = () => {
   const refresh = () => { setRefreshKey(k => k + 1); setAddOpen(false); };
   const balance = summary.credit - summary.debit;
 
-  // Pull to refresh
-  const handlePullRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await fetchSummary();
-    setRefreshKey(k => k + 1);
-    setTimeout(() => setIsRefreshing(false), 600);
-  }, [user]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const currentY = e.touches[0].clientY;
-    touchEndX.current = e.touches[0].clientX;
-    const diff = currentY - touchStartY.current;
-    if (mainRef.current && mainRef.current.scrollTop === 0 && diff > 0) {
-      setPullDistance(Math.min(diff * 0.4, 80));
-    }
-  };
-
-  const handleTouchEnd = () => {
-    // Pull to refresh
-    if (pullDistance > 50) {
-      handlePullRefresh();
-    }
-    setPullDistance(0);
-
-    // Swipe navigation
-    const diffX = touchStartX.current - touchEndX.current;
-    if (Math.abs(diffX) > 60) {
-      const availableTabs = isAdmin ? TABS : TABS.filter(t => t !== 'members');
-      const currentIdx = availableTabs.indexOf(activeTab as any);
-      if (diffX > 0 && currentIdx < availableTabs.length - 1) {
-        setActiveTab(availableTabs[currentIdx + 1]);
-      } else if (diffX < 0 && currentIdx > 0) {
-        setActiveTab(availableTabs[currentIdx - 1]);
-      }
-    }
-    touchEndX.current = 0;
-  };
 
   if (!user) return null;
 
@@ -168,26 +118,8 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Pull to refresh indicator */}
-      {pullDistance > 0 && (
-        <div className="flex justify-center py-2 transition-all" style={{ height: pullDistance }}>
-          <RefreshCw className={`w-5 h-5 text-primary transition-transform ${pullDistance > 50 ? 'animate-spin' : ''}`}
-            style={{ transform: `rotate(${pullDistance * 3}deg)` }} />
-        </div>
-      )}
-      {isRefreshing && (
-        <div className="flex justify-center py-2">
-          <RefreshCw className="w-5 h-5 text-primary animate-spin" />
-        </div>
-      )}
 
-      <main
-        ref={mainRef}
-        className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 overflow-y-auto"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 overflow-y-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
           {/* Desktop Tabs */}
           <div className="hidden md:block">
