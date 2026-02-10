@@ -210,7 +210,7 @@ const Reports = () => {
     </table>
   </div>` : ''}
 
-  <div class="section">
+  ${transactions.length > 0 ? `<div class="section">
     <h2>📋 सर्व व्यवहार (${transactions.length} व्यवहार)</h2>
     <div style="overflow-x:auto;">
     <table>
@@ -237,12 +237,12 @@ const Reports = () => {
         </tr>
         <tr class="total-row" style="border-top:3px solid #7c3aed;background:#f5f3ff;">
           <td colspan="${isAdmin ? 6 : 5}" style="text-align:right;color:#7c3aed;">शिल्लक:</td>
-          <td style="text-align:right;color:#7c3aed;font-size:16px;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
+          <td style="text-align:right;color:#7c3aed;font-size:18px;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
         </tr>
       </tfoot>
     </table>
     </div>
-  </div>
+  </div>` : `<div class="no-data">📭 या वर्षासाठी कोणतेही व्यवहार नाहीत</div>`}
 
   <div class="footer">
     <p>Developed By <strong>Shree Software</strong> | Generated on ${new Date().toLocaleString('mr-IN')}</p>
