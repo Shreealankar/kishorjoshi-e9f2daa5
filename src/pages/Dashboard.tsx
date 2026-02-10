@@ -72,6 +72,32 @@ const Dashboard = () => {
   const refresh = () => { setRefreshKey(k => k + 1); setAddOpen(false); };
   const balance = summary.credit - summary.debit;
 
+  // Pull to refresh
+  const handlePullRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchSummary();
+    setRefreshKey(k => k + 1);
+    setTimeout(() => setIsRefreshing(false), 600);
+  }, [user]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - touchStartY.current;
+    if (mainRef.current && mainRef.current.scrollTop === 0 && diff > 0) {
+      setPullDistance(Math.min(diff * 0.4, 80));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (pullDistance > 50) {
+      handlePullRefresh();
+    }
+    setPullDistance(0);
+  };
 
   if (!user) return null;
 
