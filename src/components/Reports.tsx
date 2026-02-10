@@ -4,7 +4,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { FileText } from 'lucide-react';
 
 const COLORS = ['hsl(145,60%,45%)', 'hsl(270,60%,55%)', 'hsl(30,80%,55%)', 'hsl(200,50%,55%)', 'hsl(340,60%,55%)', 'hsl(45,70%,50%)', 'hsl(180,50%,45%)', 'hsl(100,50%,45%)', 'hsl(300,50%,55%)', 'hsl(15,70%,50%)', 'hsl(220,60%,55%)'];
 
@@ -15,6 +17,7 @@ const Reports = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<{ id: string; name: string }[]>([]);
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({});
   const [filterMember, setFilterMember] = useState('all');
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
 
@@ -30,7 +33,12 @@ const Reports = () => {
     }
     if (isAdmin) {
       const { data: mems } = await supabase.rpc('get_all_members');
-      if (mems) setMembers(mems.map((m: any) => ({ id: m.id, name: m.name })));
+      if (mems) {
+        setMembers(mems.map((m: any) => ({ id: m.id, name: m.name })));
+        const nMap: Record<string, string> = {};
+        mems.forEach((m: any) => { nMap[m.id] = m.name; });
+        setMemberNames(nMap);
+      }
     }
     let query = supabase.from('transactions').select('*');
     if (!isAdmin) query = query.eq('member_id', user.id);
@@ -57,15 +65,201 @@ const Reports = () => {
     }, {} as Record<string, number>)
   ).map(([name, value]) => ({ name, value }));
 
+  const creditCategoryData = Object.entries(
+    transactions.filter(t => t.type === 'credit').reduce((acc, t) => {
+      const cat = categories[t.category_id] || 'इतर';
+      acc[cat] = (acc[cat] || 0) + Number(t.amount);
+      return acc;
+    }, {} as Record<string, number>)
+  ).map(([name, value]) => ({ name, value }));
+
+  const totalCredit = transactions.filter(t => t.type === 'credit').reduce((s, t) => s + Number(t.amount), 0);
+  const totalDebit = transactions.filter(t => t.type === 'debit').reduce((s, t) => s + Number(t.amount), 0);
+
+  // PDF generation using about:blank
+  const generatePDF = () => {
+    const sortedTxns = [...transactions].sort((a, b) =>
+      new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime()
+    );
+
+    const txnRows = sortedTxns.map((t, i) => `
+      <tr style="border-bottom:1px solid #333;">
+        <td style="padding:6px 8px;text-align:center;">${i + 1}</td>
+        <td style="padding:6px 8px;">${new Date(t.transaction_date).toLocaleDateString('mr-IN')}</td>
+        ${isAdmin ? `<td style="padding:6px 8px;">${memberNames[t.member_id] || '-'}</td>` : ''}
+        <td style="padding:6px 8px;text-align:center;">
+          <span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;
+            ${t.type === 'credit' ? 'background:#0d3320;color:#4ade80;' : 'background:#3d1c0a;color:#fb923c;'}">
+            ${t.type === 'credit' ? 'जमा' : 'खर्च'}
+          </span>
+        </td>
+        <td style="padding:6px 8px;">${categories[t.category_id] || 'इतर'}</td>
+        <td style="padding:6px 8px;">${t.description || '-'}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:600;
+          ${t.type === 'credit' ? 'color:#4ade80;' : 'color:#fb923c;'}">
+          ${t.type === 'credit' ? '+' : '-'}₹${Number(t.amount).toLocaleString('hi-IN')}
+        </td>
+      </tr>
+    `).join('');
+
+    const catRows = categoryData.map((c, i) => `
+      <tr style="border-bottom:1px solid #333;">
+        <td style="padding:6px 8px;">${c.name}</td>
+        <td style="padding:6px 8px;text-align:right;color:#fb923c;font-weight:600;">₹${c.value.toLocaleString('hi-IN')}</td>
+        <td style="padding:6px 8px;text-align:right;">${totalDebit > 0 ? ((c.value / totalDebit) * 100).toFixed(1) : 0}%</td>
+      </tr>
+    `).join('');
+
+    const creditCatRows = creditCategoryData.map((c) => `
+      <tr style="border-bottom:1px solid #333;">
+        <td style="padding:6px 8px;">${c.name}</td>
+        <td style="padding:6px 8px;text-align:right;color:#4ade80;font-weight:600;">₹${c.value.toLocaleString('hi-IN')}</td>
+        <td style="padding:6px 8px;text-align:right;">${totalCredit > 0 ? ((c.value / totalCredit) * 100).toFixed(1) : 0}%</td>
+      </tr>
+    `).join('');
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>कुटुंब खर्च अहवाल - ${filterYear}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; background:#0d1117; color:#c9d1d9; padding:20px; }
+    .header { text-align:center; padding:20px 0; border-bottom:2px solid #7c3aed; margin-bottom:20px; }
+    .header h1 { color:#a78bfa; font-size:24px; margin-bottom:4px; }
+    .header p { color:#8b949e; font-size:13px; }
+    .summary { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+    .summary-card { flex:1; min-width:140px; padding:16px; border-radius:10px; border:1px solid #30363d; background:#161b22; }
+    .summary-card .label { font-size:12px; color:#8b949e; margin-bottom:4px; }
+    .summary-card .value { font-size:22px; font-weight:700; }
+    .green { color:#4ade80; border-color:#166534; }
+    .orange { color:#fb923c; border-color:#9a3412; }
+    .purple { color:#a78bfa; border-color:#5b21b6; }
+    .section { margin-bottom:24px; }
+    .section h2 { font-size:16px; color:#a78bfa; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #30363d; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { padding:8px; text-align:left; background:#161b22; color:#8b949e; font-weight:600; border-bottom:2px solid #30363d; }
+    td { padding:6px 8px; }
+    .footer { text-align:center; padding:16px 0; border-top:1px solid #30363d; margin-top:20px; color:#8b949e; font-size:12px; }
+    .print-btn { display:block; margin:0 auto 20px; padding:10px 24px; background:#7c3aed; color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer; }
+    .print-btn:hover { background:#6d28d9; }
+    @media print { .print-btn { display:none; } body { background:#fff; color:#000; } .summary-card { background:#f5f5f5; border-color:#ddd; } .green { color:#16a34a; } .orange { color:#ea580c; } .purple { color:#7c3aed; } th { background:#f5f5f5; color:#333; } td { color:#333; } .header { border-color:#7c3aed; } .header h1 { color:#7c3aed; } .section h2 { color:#7c3aed; } }
+  </style>
+</head>
+<body>
+  <button class="print-btn" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
+  
+  <div class="header">
+    <h1>कुटुंब खर्च व्यवस्थापन</h1>
+    <p>वार्षिक अहवाल - ${filterYear} | ${user?.name || ''} ${isAdmin ? '(व्यवस्थापक)' : '(सदस्य)'}</p>
+    <p>तारीख: ${new Date().toLocaleDateString('mr-IN')}</p>
+  </div>
+
+  <div class="summary">
+    <div class="summary-card green">
+      <div class="label">एकूण जमा (Credit)</div>
+      <div class="value green">₹${totalCredit.toLocaleString('hi-IN')}</div>
+    </div>
+    <div class="summary-card orange">
+      <div class="label">एकूण खर्च (Debit)</div>
+      <div class="value orange">₹${totalDebit.toLocaleString('hi-IN')}</div>
+    </div>
+    <div class="summary-card purple">
+      <div class="label">शिल्लक (Balance)</div>
+      <div class="value ${(totalCredit - totalDebit) >= 0 ? 'green' : 'orange'}">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</div>
+    </div>
+  </div>
+
+  ${creditCategoryData.length > 0 ? `
+  <div class="section">
+    <h2>वर्गवारीनुसार जमा (Credit by Category)</h2>
+    <table>
+      <thead><tr><th>वर्गवारी</th><th style="text-align:right;">रक्कम</th><th style="text-align:right;">टक्केवारी</th></tr></thead>
+      <tbody>${creditCatRows}</tbody>
+      <tfoot><tr style="border-top:2px solid #30363d;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#4ade80;">₹${totalCredit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
+    </table>
+  </div>` : ''}
+
+  ${categoryData.length > 0 ? `
+  <div class="section">
+    <h2>वर्गवारीनुसार खर्च (Debit by Category)</h2>
+    <table>
+      <thead><tr><th>वर्गवारी</th><th style="text-align:right;">रक्कम</th><th style="text-align:right;">टक्केवारी</th></tr></thead>
+      <tbody>${catRows}</tbody>
+      <tfoot><tr style="border-top:2px solid #30363d;font-weight:700;"><td>एकूण</td><td style="text-align:right;color:#fb923c;">₹${totalDebit.toLocaleString('hi-IN')}</td><td style="text-align:right;">100%</td></tr></tfoot>
+    </table>
+  </div>` : ''}
+
+  <div class="section">
+    <h2>सर्व व्यवहार (All Transactions - ${transactions.length})</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:center;">#</th>
+          <th>तारीख</th>
+          ${isAdmin ? '<th>सदस्य</th>' : ''}
+          <th style="text-align:center;">प्रकार</th>
+          <th>वर्गवारी</th>
+          <th>वर्णन</th>
+          <th style="text-align:right;">रक्कम</th>
+        </tr>
+      </thead>
+      <tbody>${txnRows}</tbody>
+      <tfoot>
+        <tr style="border-top:2px solid #30363d;font-weight:700;">
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">एकूण जमा:</td>
+          <td style="text-align:right;color:#4ade80;">₹${totalCredit.toLocaleString('hi-IN')}</td>
+        </tr>
+        <tr style="font-weight:700;">
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">एकूण खर्च:</td>
+          <td style="text-align:right;color:#fb923c;">₹${totalDebit.toLocaleString('hi-IN')}</td>
+        </tr>
+        <tr style="font-weight:700;border-top:2px solid #7c3aed;">
+          <td colspan="${isAdmin ? 6 : 5}" style="padding:8px;text-align:right;">शिल्लक:</td>
+          <td style="text-align:right;color:#a78bfa;">₹${(totalCredit - totalDebit).toLocaleString('hi-IN')}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="footer">
+    <p>Developed By Shree Software | Generated on ${new Date().toLocaleString('mr-IN')}</p>
+  </div>
+</body>
+</html>`;
+
+    const newWindow = window.open('about:blank', '_blank');
+    if (newWindow) {
+      newWindow.document.write(html);
+      newWindow.document.close();
+    }
+  };
+
+  // Custom pie label for mobile
+  const renderCustomLabel = ({ name, percent, cx, cy, midAngle, innerRadius, outerRadius }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius + 25;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    return (
+      <text x={x} y={y} fill="hsl(210,40%,85%)" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={11}>
+        {`${name} ${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Filters + PDF button */}
       <Card className="border-border bg-card">
         <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap items-end gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label className="text-foreground">वर्ष</Label>
               <Select value={filterYear} onValueChange={setFilterYear}>
-                <SelectTrigger className="w-[120px] bg-secondary border-border"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-[100px] sm:w-[120px] bg-secondary border-border"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-card border-border">
                   {[2024, 2025, 2026, 2027].map(y => (
                     <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
@@ -77,7 +271,7 @@ const Reports = () => {
               <div className="space-y-2">
                 <Label className="text-foreground">सदस्य</Label>
                 <Select value={filterMember} onValueChange={setFilterMember}>
-                  <SelectTrigger className="w-[150px] bg-secondary border-border"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-[130px] sm:w-[150px] bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     <SelectItem value="all">सर्व सदस्य</SelectItem>
                     {members.map(m => (
@@ -87,22 +281,52 @@ const Reports = () => {
                 </Select>
               </div>
             )}
+            <Button onClick={generatePDF} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 ml-auto">
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">PDF अहवाल</span>
+              <span className="sm:hidden">PDF</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
 
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <Card className="border-[hsl(145,60%,35%)] bg-card">
+          <CardContent className="p-3 sm:p-5">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">एकूण जमा</p>
+            <p className="text-sm sm:text-xl font-bold text-[hsl(145,60%,45%)] mt-1">₹{totalCredit.toLocaleString('hi-IN')}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-[hsl(30,80%,45%)] bg-card">
+          <CardContent className="p-3 sm:p-5">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">एकूण खर्च</p>
+            <p className="text-sm sm:text-xl font-bold text-[hsl(30,80%,55%)] mt-1">₹{totalDebit.toLocaleString('hi-IN')}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-primary bg-card">
+          <CardContent className="p-3 sm:p-5">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">शिल्लक</p>
+            <p className={`text-sm sm:text-xl font-bold mt-1 ${(totalCredit - totalDebit) >= 0 ? 'text-[hsl(145,60%,45%)]' : 'text-destructive'}`}>
+              ₹{(totalCredit - totalDebit).toLocaleString('hi-IN')}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bar Chart */}
       <Card className="border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-foreground">मासिक जमा व खर्च</CardTitle>
+        <CardHeader className="pb-2 sm:pb-6">
+          <CardTitle className="text-foreground text-sm sm:text-base">मासिक जमा व खर्च</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData}>
+        <CardContent className="px-1 sm:px-6">
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={monthlyData} margin={{ left: -15, right: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(225,15%,20%)" />
-              <XAxis dataKey="month" fontSize={11} tick={{ fill: 'hsl(215,15%,55%)' }} />
-              <YAxis fontSize={11} tick={{ fill: 'hsl(215,15%,55%)' }} />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(225,20%,12%)', border: '1px solid hsl(225,15%,20%)', color: 'hsl(210,40%,92%)' }} />
-              <Legend />
+              <XAxis dataKey="month" fontSize={9} tick={{ fill: 'hsl(215,15%,55%)' }} interval={0} angle={-45} textAnchor="end" height={50} />
+              <YAxis fontSize={10} tick={{ fill: 'hsl(215,15%,55%)' }} width={45} />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(225,20%,12%)', border: '1px solid hsl(225,15%,20%)', color: 'hsl(210,40%,92%)', fontSize: '12px' }} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="जमा" fill="hsl(145,60%,45%)" />
               <Bar dataKey="खर्च" fill="hsl(30,80%,55%)" />
             </BarChart>
@@ -110,27 +334,83 @@ const Reports = () => {
         </CardContent>
       </Card>
 
+      {/* Pie Chart - Debit */}
       <Card className="border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-foreground">वर्गवारीनुसार खर्च</CardTitle>
+        <CardHeader className="pb-2 sm:pb-6">
+          <CardTitle className="text-foreground text-sm sm:text-base">वर्गवारीनुसार खर्च</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-1 sm:px-6">
           {categoryData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={categoryData} cx="50%" cy="50%" labelLine={false}
-                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                  outerRadius={100} dataKey="value">
-                  {categoryData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => `₹${value.toLocaleString('hi-IN')}`}
-                  contentStyle={{ backgroundColor: 'hsl(225,20%,12%)', border: '1px solid hsl(225,15%,20%)', color: 'hsl(210,40%,92%)' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <div>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie data={categoryData} cx="50%" cy="50%"
+                    outerRadius={typeof window !== 'undefined' && window.innerWidth < 640 ? 70 : 100}
+                    dataKey="value"
+                    label={renderCustomLabel}
+                    labelLine={false}
+                  >
+                    {categoryData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => `₹${value.toLocaleString('hi-IN')}`}
+                    contentStyle={{ backgroundColor: 'hsl(225,20%,12%)', border: '1px solid hsl(225,15%,20%)', color: 'hsl(210,40%,92%)', fontSize: '12px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Legend list for mobile */}
+              <div className="grid grid-cols-2 gap-1 mt-2 sm:hidden">
+                {categoryData.map((c, i) => (
+                  <div key={c.name} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <span className="truncate">{c.name}</span>
+                    <span className="ml-auto text-foreground font-medium">₹{c.value.toLocaleString('hi-IN')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">खर्चाची माहिती उपलब्ध नाही</p>
+            <p className="text-center text-muted-foreground py-8 text-sm">खर्चाची माहिती उपलब्ध नाही</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pie Chart - Credit */}
+      <Card className="border-border bg-card">
+        <CardHeader className="pb-2 sm:pb-6">
+          <CardTitle className="text-foreground text-sm sm:text-base">वर्गवारीनुसार जमा</CardTitle>
+        </CardHeader>
+        <CardContent className="px-1 sm:px-6">
+          {creditCategoryData.length > 0 ? (
+            <div>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie data={creditCategoryData} cx="50%" cy="50%"
+                    outerRadius={typeof window !== 'undefined' && window.innerWidth < 640 ? 70 : 100}
+                    dataKey="value"
+                    label={renderCustomLabel}
+                    labelLine={false}
+                  >
+                    {creditCategoryData.map((_, index) => (
+                      <Cell key={`cell-c-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => `₹${value.toLocaleString('hi-IN')}`}
+                    contentStyle={{ backgroundColor: 'hsl(225,20%,12%)', border: '1px solid hsl(225,15%,20%)', color: 'hsl(210,40%,92%)', fontSize: '12px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="grid grid-cols-2 gap-1 mt-2 sm:hidden">
+                {creditCategoryData.map((c, i) => (
+                  <div key={c.name} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <span className="truncate">{c.name}</span>
+                    <span className="ml-auto text-foreground font-medium">₹{c.value.toLocaleString('hi-IN')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8 text-sm">जमाची माहिती उपलब्ध नाही</p>
           )}
         </CardContent>
       </Card>
