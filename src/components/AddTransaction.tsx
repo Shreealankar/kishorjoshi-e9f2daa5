@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 interface Category {
   id: string;
   name: string;
+  type: string;
 }
 
 const AddTransaction = ({ onAdded }: { onAdded: () => void }) => {
@@ -27,8 +28,8 @@ const AddTransaction = ({ onAdded }: { onAdded: () => void }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    supabase.from('categories').select('id, name').then(({ data }) => {
-      if (data) setCategories(data);
+    supabase.from('categories').select('id, name, type').then(({ data }) => {
+      if (data) setCategories(data as Category[]);
     });
     if (isAdmin) {
       supabase.rpc('get_all_members').then(({ data }) => {
@@ -36,6 +37,21 @@ const AddTransaction = ({ onAdded }: { onAdded: () => void }) => {
       });
     }
   }, [isAdmin]);
+
+  // Filter categories based on selected transaction type
+  const filteredCategories = categories.filter(
+    c => c.type === type || c.type === 'both'
+  );
+
+  // Check if selected category is "इतर"
+  const selectedCategory = categories.find(c => c.id === categoryId);
+  const isOther = selectedCategory?.name === 'इतर';
+
+  // Reset category when type changes
+  const handleTypeChange = (newType: string) => {
+    setType(newType);
+    setCategoryId('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +61,10 @@ const AddTransaction = ({ onAdded }: { onAdded: () => void }) => {
     }
     if (!categoryId) {
       toast({ title: 'कृपया वर्गवारी निवडा', variant: 'destructive' });
+      return;
+    }
+    if (isOther && !description.trim()) {
+      toast({ title: 'इतर निवडल्यास कृपया वर्णन लिहा', variant: 'destructive' });
       return;
     }
     const memberId = isAdmin && selectedMember ? selectedMember : user?.id;
@@ -74,7 +94,7 @@ const AddTransaction = ({ onAdded }: { onAdded: () => void }) => {
     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label className="text-foreground">प्रकार</Label>
-        <Select value={type} onValueChange={setType}>
+        <Select value={type} onValueChange={handleTypeChange}>
           <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
           <SelectContent className="bg-card border-border">
             <SelectItem value="credit">जमा (Credit)</SelectItem>
@@ -91,7 +111,7 @@ const AddTransaction = ({ onAdded }: { onAdded: () => void }) => {
         <Select value={categoryId} onValueChange={setCategoryId}>
           <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="निवडा" /></SelectTrigger>
           <SelectContent className="bg-card border-border">
-            {categories.map(c => (
+            {filteredCategories.map(c => (
               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
           </SelectContent>
@@ -115,8 +135,16 @@ const AddTransaction = ({ onAdded }: { onAdded: () => void }) => {
         </div>
       )}
       <div className="space-y-2">
-        <Label className="text-foreground">वर्णन</Label>
-        <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="तपशील लिहा (ऐच्छिक)" className="h-10 min-h-[40px] bg-secondary border-border" maxLength={200} />
+        <Label className="text-foreground">
+          {isOther ? 'वर्णन (आवश्यक - इतर काय आहे ते लिहा)' : 'वर्णन (ऐच्छिक)'}
+        </Label>
+        <Textarea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder={isOther ? 'इतर म्हणजे काय ते येथे लिहा...' : 'तपशील लिहा (ऐच्छिक)'}
+          className={`h-10 min-h-[40px] bg-secondary border-border ${isOther ? 'border-primary ring-1 ring-primary' : ''}`}
+          maxLength={200}
+        />
       </div>
       <div className="flex items-end md:col-span-2">
         <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
