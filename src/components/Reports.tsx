@@ -102,19 +102,19 @@ const Reports = () => {
       </tr>
     `).join('');
 
-    const catRows = categoryData.map((c, i) => `
+    const catRows = categoryData.map((c) => `
       <tr style="border-bottom:1px solid #333;">
         <td style="padding:6px 8px;">${c.name}</td>
-        <td style="padding:6px 8px;text-align:right;color:#fb923c;font-weight:600;">₹${c.value.toLocaleString('hi-IN')}</td>
-        <td style="padding:6px 8px;text-align:right;">${totalDebit > 0 ? ((c.value / totalDebit) * 100).toFixed(1) : 0}%</td>
+        <td style="padding:6px 8px;text-align:right;color:#fb923c;font-weight:600;">₹${Number(c.value).toLocaleString()}</td>
+        <td style="padding:6px 8px;text-align:right;">${totalDebit > 0 ? ((Number(c.value) / totalDebit) * 100).toFixed(1) : 0}%</td>
       </tr>
     `).join('');
 
     const creditCatRows = creditCategoryData.map((c) => `
       <tr style="border-bottom:1px solid #333;">
         <td style="padding:6px 8px;">${c.name}</td>
-        <td style="padding:6px 8px;text-align:right;color:#4ade80;font-weight:600;">₹${c.value.toLocaleString('hi-IN')}</td>
-        <td style="padding:6px 8px;text-align:right;">${totalCredit > 0 ? ((c.value / totalCredit) * 100).toFixed(1) : 0}%</td>
+        <td style="padding:6px 8px;text-align:right;color:#4ade80;font-weight:600;">₹${Number(c.value).toLocaleString()}</td>
+        <td style="padding:6px 8px;text-align:right;">${totalCredit > 0 ? ((Number(c.value) / totalCredit) * 100).toFixed(1) : 0}%</td>
       </tr>
     `).join('');
 
