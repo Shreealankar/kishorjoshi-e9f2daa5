@@ -161,7 +161,8 @@ const Reports = () => {
   </style>
 </head>
 <body>
-  <button class="no-print" style="display:block;width:100%;max-width:300px;margin:0 auto 20px;padding:12px 24px;background:#7c3aed;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(124,58,237,0.3);" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
+  <div class="container">
+  <button class="no-print" style="display:block;width:100%;max-width:320px;margin:0 auto 20px;padding:14px 24px;background:#7c3aed;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,0.3);" onclick="window.print()">🖨️ प्रिंट / PDF सेव्ह करा</button>
   
   <div class="header">
     <h1>📊 कुटुंब खर्च व्यवस्थापन</h1>
