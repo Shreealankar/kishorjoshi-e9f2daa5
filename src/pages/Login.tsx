@@ -44,6 +44,11 @@ const Login = () => {
     const success = await login(name.trim(), password);
     setIsLoading(false);
     if (success) {
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_KEY, btoa(JSON.stringify({ n: name.trim(), p: password })));
+      } else {
+        localStorage.removeItem(REMEMBER_KEY);
+      }
       toast({ title: 'लॉगिन यशस्वी!' });
       navigate('/dashboard');
     } else {
