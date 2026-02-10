@@ -26,14 +26,11 @@ const MemberManagement = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchMembers();
-  }, []);
+  useEffect(() => { fetchMembers(); }, []);
 
   const fetchMembers = async () => {
-    const { data, error } = await supabase.rpc('get_all_members');
+    const { data } = await supabase.rpc('get_all_members');
     if (data) setMembers(data as Member[]);
-    if (error) console.error(error);
   };
 
   const addMember = async () => {
@@ -56,10 +53,7 @@ const MemberManagement = () => {
       toast({ title: 'सदस्य जोडता आला नाही', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'सदस्य यशस्वीरित्या जोडला!' });
-      setNewName('');
-      setNewPassword('');
-      setNewRole('member');
-      setIsOpen(false);
+      setNewName(''); setNewPassword(''); setNewRole('member'); setIsOpen(false);
       fetchMembers();
     }
   };
@@ -70,8 +64,7 @@ const MemberManagement = () => {
     if (error) {
       toast({ title: 'हटवता आले नाही', variant: 'destructive' });
     } else {
-      toast({ title: 'सदस्य हटवला!' });
-      fetchMembers();
+      toast({ title: 'सदस्य हटवला!' }); fetchMembers();
     }
   };
 
@@ -81,10 +74,7 @@ const MemberManagement = () => {
       if (newPwd) toast({ title: 'पासवर्ड किमान ४ अक्षरांचा असावा', variant: 'destructive' });
       return;
     }
-    const { error } = await supabase.rpc('update_member_password', {
-      _member_id: id,
-      _new_password: newPwd,
-    });
+    const { error } = await supabase.rpc('update_member_password', { _member_id: id, _new_password: newPwd });
     if (error) {
       toast({ title: 'पासवर्ड बदलता आला नाही', variant: 'destructive' });
     } else {
@@ -93,34 +83,34 @@ const MemberManagement = () => {
   };
 
   return (
-    <Card className="border-orange-200">
+    <Card className="border-border bg-card">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-orange-900">सदस्य व्यवस्थापन</CardTitle>
+        <CardTitle className="text-foreground">सदस्य व्यवस्थापन</CardTitle>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-orange-600 hover:bg-orange-700">
-              <UserPlus className="w-4 h-4 mr-2" /> नवीन सदस्य
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+              <UserPlus className="w-4 h-4" /> नवीन सदस्य
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-card border-border">
             <DialogHeader>
-              <DialogTitle>नवीन सदस्य जोडा</DialogTitle>
-              <DialogDescription>कुटुंबातील नवीन सदस्याची माहिती भरा</DialogDescription>
+              <DialogTitle className="text-foreground">नवीन सदस्य जोडा</DialogTitle>
+              <DialogDescription className="text-muted-foreground">कुटुंबातील नवीन सदस्याची माहिती भरा</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>नाव</Label>
-                <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="सदस्याचे नाव" maxLength={50} />
+                <Label className="text-foreground">नाव</Label>
+                <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="सदस्याचे नाव" className="bg-secondary border-border" maxLength={50} />
               </div>
               <div className="space-y-2">
-                <Label>पासवर्ड</Label>
-                <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="पासवर्ड" maxLength={50} />
+                <Label className="text-foreground">पासवर्ड</Label>
+                <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="पासवर्ड" className="bg-secondary border-border" maxLength={50} />
               </div>
               <div className="space-y-2">
-                <Label>भूमिका</Label>
+                <Label className="text-foreground">भूमिका</Label>
                 <Select value={newRole} onValueChange={setNewRole}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-card border-border">
                     <SelectItem value="member">सदस्य</SelectItem>
                     <SelectItem value="admin">व्यवस्थापक</SelectItem>
                   </SelectContent>
@@ -128,7 +118,7 @@ const MemberManagement = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={addMember} disabled={loading} className="bg-orange-600 hover:bg-orange-700">
+              <Button onClick={addMember} disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 {loading ? 'जोडत आहे...' : 'जोडा'}
               </Button>
             </DialogFooter>
@@ -138,21 +128,21 @@ const MemberManagement = () => {
       <CardContent>
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>नाव</TableHead>
-              <TableHead>भूमिका</TableHead>
-              <TableHead>तारीख</TableHead>
-              <TableHead className="text-right">क्रिया</TableHead>
+            <TableRow className="border-border">
+              <TableHead className="text-muted-foreground">नाव</TableHead>
+              <TableHead className="text-muted-foreground">भूमिका</TableHead>
+              <TableHead className="text-muted-foreground">तारीख</TableHead>
+              <TableHead className="text-right text-muted-foreground">क्रिया</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {members.map(m => (
-              <TableRow key={m.id}>
-                <TableCell className="font-medium">{m.name}</TableCell>
-                <TableCell>{m.role === 'admin' ? 'व्यवस्थापक' : 'सदस्य'}</TableCell>
-                <TableCell>{new Date(m.created_at).toLocaleDateString('mr-IN')}</TableCell>
+              <TableRow key={m.id} className="border-border">
+                <TableCell className="font-medium text-foreground">{m.name}</TableCell>
+                <TableCell className="text-muted-foreground">{m.role === 'admin' ? 'व्यवस्थापक' : 'सदस्य'}</TableCell>
+                <TableCell className="text-muted-foreground">{new Date(m.created_at).toLocaleDateString('mr-IN')}</TableCell>
                 <TableCell className="text-right space-x-2">
-                  <Button size="sm" variant="outline" onClick={() => resetPassword(m.id, m.name)}>
+                  <Button size="sm" variant="outline" onClick={() => resetPassword(m.id, m.name)} className="border-border">
                     <KeyRound className="w-3 h-3" />
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => deleteMember(m.id, m.name)}>
@@ -162,9 +152,7 @@ const MemberManagement = () => {
               </TableRow>
             ))}
             {members.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">कोणतेही सदस्य नाहीत</TableCell>
-              </TableRow>
+              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">कोणतेही सदस्य नाहीत</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
